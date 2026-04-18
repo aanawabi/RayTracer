@@ -1,0 +1,12 @@
+D:\PDC Semester Project\ParallelRayTracer\src\common\Camera.java
+D:\PDC Semester Project\ParallelRayTracer\src\common\Light.java
+D:\PDC Semester Project\ParallelRayTracer\src\common\MessageProtocol.java
+D:\PDC Semester Project\ParallelRayTracer\src\common\Plane.java
+D:\PDC Semester Project\ParallelRayTracer\src\common\Ray.java
+D:\PDC Semester Project\ParallelRayTracer\src\common\SceneConfig.java
+D:\PDC Semester Project\ParallelRayTracer\src\common\SceneObject.java
+D:\PDC Semester Project\ParallelRayTracer\src\common\Sphere.java
+D:\PDC Semester Project\ParallelRayTracer\src\common\Tile.java
+D:\PDC Semester Project\ParallelRayTracer\src\common\Vec3.java
+D:\PDC Semester Project\ParallelRayTracer\src\core\RayTracer.java
+D:\PDC Semester Project\ParallelRayTracer\src\core\SequentialRunner.java
