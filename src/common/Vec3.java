@@ -1,6 +1,9 @@
 package common;
 
-public class Vec3 {
+import java.io.Serializable;
+
+public class Vec3 implements Serializable {
+    private static final long serialVersionUID = 1L;
     public final double x, y, z;
 
     public Vec3(double x, double y, double z) {

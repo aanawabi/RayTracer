@@ -1,6 +1,7 @@
 package common;
 
-public class Sphere implements SceneObject {
+public class Sphere implements SceneObject, java.io.Serializable {
+    private static final long serialVersionUID = 1L;
     private final Vec3   center;
     private final double radius;
     private final Vec3   color;

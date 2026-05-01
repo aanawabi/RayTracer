@@ -1,6 +1,7 @@
 package common;
 
-public class Plane implements SceneObject {
+public class Plane implements SceneObject, java.io.Serializable {
+    private static final long serialVersionUID = 1L;
     private final Vec3   point;  // a point on the plane
     private final Vec3   normal; // plane normal (unit vector)
     private final Vec3   color;
