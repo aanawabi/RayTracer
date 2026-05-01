@@ -374,8 +374,8 @@ The BVH groups scene objects into a binary tree of axis-aligned bounding boxes. 
 | `core/RayTracer.java` | Member A | ✅ Complete |
 | `core/BVH.java` | Member A | ✅ Complete |
 | `core/SequentialRunner.java` | Member A | ✅ Complete |
-| `worker/WorkerNode.java` | Member B | 🔲 In progress |
-| `worker/TileRenderer.java` | Member B | 🔲 In progress |
+| `worker/WorkerNode.java` | Member B | ✅ Complete |
+| `worker/TileRenderer.java` | Member B | ✅ Complete |
 | `master/MasterNode.java` | Member C | 🔲 In progress |
 | `master/WorkPartitioner.java` | Member C | 🔲 In progress |
 | `master/ResultAggregator.java` | Member C | 🔲 In progress |
