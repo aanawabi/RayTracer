@@ -370,17 +370,20 @@ The BVH groups scene objects into a binary tree of axis-aligned bounding boxes. 
 
 | Component | Owner | Status |
 |-----------|-------|--------|
-| `common/` — all shared classes | Member A | ✅ Complete |
-| `core/RayTracer.java` | Member A | ✅ Complete |
-| `core/BVH.java` | Member A | ✅ Complete |
-| `core/SequentialRunner.java` | Member A | ✅ Complete |
-| `worker/WorkerNode.java` | Member B | ✅ Complete |
-| `worker/TileRenderer.java` | Member B | ✅ Complete |
-| `master/MasterNode.java` | Member C | ✅ Complete |
-| `master/WorkPartitioner.java` | Member C | ✅ Complete |
-| `master/ResultAggregator.java` | Member C | ✅ Complete |
-| Performance graphs + CSV | All | 🔲 After integration |
-| Final report | All | 🔲 Week 5 |
+| `common/` — all shared classes | Amna Akhtar Nawabi (A) | ✅ Complete |
+| `core/RayTracer.java` | Amna Akhtar Nawabi (A) | ✅ Complete |
+| `core/BVH.java` — BVH optimization | Amna Akhtar Nawabi (A) | ✅ Complete |
+| `core/SequentialRunner.java` | Amna Akhtar Nawabi (A) | ✅ Complete |
+| `core/CorrectnessChecker.java` | Amna Akhtar Nawabi (A) | ✅ Complete |
+| `benchmark_sequential.ps1` | Amna Akhtar Nawabi (A) | ✅ Complete |
+| `benchmark_parallel.ps1` | Amna Akhtar Nawabi (A) | ✅ Complete |
+| `analyze_results.py` — speedup + graphs | Amna Akhtar Nawabi (A) | ✅ Complete |
+| Project report (PDF) | Amna Akhtar Nawabi (A) | ✅ Complete |
+| `worker/WorkerNode.java` | Sana Khan Khitran (B) | ✅ Complete |
+| `worker/TileRenderer.java` | Sana Khan Khitran (B) | ✅ Complete |
+| `master/MasterNode.java` | Attiqa Bano (C) | ✅ Complete |
+| `master/WorkPartitioner.java` | Attiqa Bano (C) | ✅ Complete |
+| `master/ResultAggregator.java` | Attiqa Bano (C) | ✅ Complete |
 
 ---
 
