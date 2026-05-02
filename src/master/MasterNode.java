@@ -63,6 +63,7 @@ public class MasterNode {
             outs[i].writeInt(MessageProtocol.TASK_ASSIGN);
             outs[i].writeObject(scene);
             outs[i].writeObject(tiles.get(i));
+            outs[i].writeInt(nThreads);
             outs[i].flush();
             System.out.println("Master: dispatched " + tiles.get(i) + " → worker " + i);
         }

@@ -31,11 +31,12 @@ public class WorkerNode {
 
             SceneConfig scene = (SceneConfig) in.readObject();
             Tile tile = (Tile) in.readObject();
-            System.out.printf("Worker: received %s  scene=%dx%d depth=%d%n",
-                    tile, scene.width, scene.height, scene.maxDepth);
+            int nThreads = in.readInt();
+            System.out.printf("Worker: received %s  scene=%dx%d depth=%d  threads=%d%n",
+                    tile, scene.width, scene.height, scene.maxDepth, nThreads);
 
             long start = System.nanoTime();
-            TileRenderer renderer = new TileRenderer(scene, threads);
+            TileRenderer renderer = new TileRenderer(scene, nThreads);
             byte[] pixels = renderer.render(tile);
             long elapsed = (System.nanoTime() - start) / 1_000_000;
             System.out.printf("Worker: rendered %s in %d ms%n", tile, elapsed);
