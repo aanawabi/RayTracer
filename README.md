@@ -25,18 +25,17 @@ A fully distributed, multi-threaded ray tracer built in Java. The system renders
                       │       Master Process      │
                       │  WorkPartitioner          │
                       │  ResultAggregator         │
-                      └──────┬─────────┬──────────┘
-               TASK_ASSIGN   │         │  TASK_ASSIGN
-                   ┌─────────┘         └─────────┐
-                   ▼                              ▼
-       ┌───────────────────┐        ┌───────────────────┐
-       │   Worker A (JVM1) │        │   Worker C (JVM3) │
-       │   ExecutorService │        │   ExecutorService │
-       └─────────┬─────────┘        └─────────┬─────────┘
-    RESULT_RETURN│    ┌───────────────────┐    │
-                 └───▶│   Worker B (JVM2) │◀───┘
-                      │   ExecutorService │
-                      └───────────────────┘
+                      └──────┬────┬────┬──────────┘
+               TASK_ASSIGN   │    │    │   TASK_ASSIGN
+                   ┌─────────┘    │    └─────────┐
+                   ▼              ▼              ▼
+       ┌───────────────┐  ┌───────────────┐  ┌───────────────┐
+       │ Worker A JVM1 │  │ Worker B JVM2 │  │ Worker C JVM3 │
+       │ ExecutorSvc   │  │ ExecutorSvc   │  │ ExecutorSvc   │
+       └───────┬───────┘  └───────┬───────┘  └───────┬───────┘
+               │   RESULT_RETURN  │   RESULT_RETURN   │
+               └──────────────────▶ Master ◀──────────┘
+
 All communication: TCP sockets · No inter-worker communication
 ```
 
@@ -78,39 +77,98 @@ ParallelRayTracer/
 ## How to Run
 
 ### Prerequisites
-- Java 11+
-- Python 3 + matplotlib + numpy (for graphs only)
+- Java 17+
+- Python 3 + matplotlib + numpy + pandas (for graphs only)
 
 ### Compile
+```powershell
+.\compile.bat
+```
+Or manually in PowerShell:
 ```powershell
 javac -d out (Get-ChildItem -Path src -Recurse -Filter "*.java" | Select-Object -ExpandProperty FullName)
 ```
 
+---
+
 ### Sequential Baseline
 ```powershell
 java -cp out core.SequentialRunner 1920 1080 5        # brute force
-java -cp out core.SequentialRunner 1920 1080 5 bvh    # with BVH
+java -cp out core.SequentialRunner 1920 1080 5 bvh    # with BVH acceleration
 ```
 
-### Distributed Parallel (start master first, then workers)
+---
+
+### Distributed Parallel
+
+> **Important:** Start the master first, then launch all worker terminals within 2 minutes.
+
+Open 4 separate terminals:
+
 ```powershell
-# Window 1 — Master (3 workers, 8 threads each, 1920x1080)
+# Terminal 1 — Master
 java -cp out master.MasterNode 3 1920 1080 5 8
 
-# Windows 2, 3, 4 — Workers
+# Terminal 2 — Worker
+java -cp out worker.WorkerNode localhost 5001
+
+# Terminal 3 — Worker
+java -cp out worker.WorkerNode localhost 5001
+
+# Terminal 4 — Worker
 java -cp out worker.WorkerNode localhost 5001
 ```
 
-### Correctness Verification
+The master will print `worker 0 connected`, `worker 1 connected`, `worker 2 connected` and begin rendering automatically once all workers are connected.
+
+---
+
+### Configuring Worker Count
+
+Change the **first argument** of `MasterNode` to set the number of workers. Launch exactly that many worker terminals.
+
 ```powershell
-java -cp out core.CorrectnessChecker output\seq_960x540_d5.png output\par_960x540_d5.png
+# 1 worker (8 threads)
+java -cp out master.MasterNode 1 1920 1080 5 8
+java -cp out worker.WorkerNode localhost 5001
+
+# 2 workers (8 threads each)
+java -cp out master.MasterNode 2 1920 1080 5 8
+java -cp out worker.WorkerNode localhost 5001   # Terminal 2
+java -cp out worker.WorkerNode localhost 5001   # Terminal 3
+
+# 3 workers (8 threads each) — default configuration
+java -cp out master.MasterNode 3 1920 1080 5 8
+java -cp out worker.WorkerNode localhost 5001   # Terminal 2
+java -cp out worker.WorkerNode localhost 5001   # Terminal 3
+java -cp out worker.WorkerNode localhost 5001   # Terminal 4
 ```
 
-### Full Benchmark Suite
+**Arguments for MasterNode:**
+```
+java -cp out master.MasterNode <workers> <width> <height> <depth> <threads/worker>
+```
+
+---
+
+### Correctness Verification
+
 ```powershell
-.\benchmark_sequential.ps1          # sequential baselines (all 3 sizes)
-.\benchmark_parallel.ps1            # 11 parallel configurations (auto-launches workers)
-python analyze_results.py           # compute S(p), E(p), generate graphs
+java -cp out core.CorrectnessChecker output\seq_480x270_d5.png output\par_480x270_d5.png
+java -cp out core.CorrectnessChecker output\seq_960x540_d5.png output\par_960x540_d5.png
+java -cp out core.CorrectnessChecker output\seq_1920x1080_d5.png output\par_1920x1080_d5.png
+```
+
+Expected output: `OK — Both images are pixel-exact — zero mismatches`
+
+---
+
+### Full Benchmark Suite
+
+```powershell
+.\benchmark_sequential.ps1    # collect sequential baselines (all 3 resolutions)
+.\benchmark_parallel.ps1      # run all 11 parallel configurations (auto-launches workers)
+python analyze_results.py     # compute S(p), E(p), generate all 6 graphs
 ```
 
 ---
@@ -119,28 +177,37 @@ python analyze_results.py           # compute S(p), E(p), generate graphs
 
 ### Sequential Baseline
 
-| Resolution | Time (ms) | BVH (ms) | BVH Speedup |
-|-----------|-----------|----------|-------------|
-| 480×270   | 656       | 574      | 1.14×       |
-| 960×540   | 1,746     | 1,462    | 1.19×       |
-| 1920×1080 | 6,221     | 5,285    | 1.18×       |
+| Resolution | Pixels | Time (ms) | BVH (ms) | BVH Speedup |
+|-----------|--------|-----------|----------|-------------|
+| 480×270   | 129,600 | 656      | 574      | 1.14×       |
+| 960×540   | 518,400 | 1,746    | 1,462    | 1.19×       |
+| 1920×1080 | 2,073,600 | 6,221  | 5,285    | 1.18×       |
 
-### Parallel Speedup (1920×1080)
+### Parallel Speedup (1920×1080, T_seq = 6,221 ms)
 
-| Config | T_par (ms) | S(p) | E(p) |
-|--------|-----------|------|------|
-| 3w × 1t | 2,687 | 2.32× | 0.772 |
-| 3w × 2t | 2,268 | 2.74× | 0.457 |
-| 1w × 8t | 2,160 | 2.88× | 0.360 |
-| 3w × 4t | 2,069 | 3.01× | 0.251 |
-| 2w × 8t | 1,885 | 3.30× | 0.206 |
-| **3w × 8t** | **1,638** | **3.80×** | **0.158** |
+| Config | p (total) | T_par (ms) | S(p) | E(p) |
+|--------|-----------|-----------|------|------|
+| 3w × 1t | 3 | 2,687 | 2.32× | 0.772 |
+| 3w × 2t | 6 | 2,268 | 2.74× | 0.457 |
+| 1w × 8t | 8 | 2,160 | 2.88× | 0.360 |
+| 3w × 4t | 12 | 2,069 | 3.01× | 0.251 |
+| 2w × 8t | 16 | 1,885 | 3.30× | 0.206 |
+| **3w × 8t** | **24** | **1,638** | **3.80×** | **0.158** |
 
 ### Amdahl's Law
 
-Measured parallel fraction **f = 0.769** (sequential fraction = 23.1%).
-Theoretical max speedup at 1920×1080: **S_max = 4.33×**.
-Achieved speedup of 3.80× is 87.8% of the theoretical maximum.
+- Measured parallel fraction: **f = 0.769**
+- Sequential fraction: **23.1%**
+- Theoretical maximum speedup at 1920×1080: **S_max = 4.33×**
+- Achieved: **3.80× = 87.8% of theoretical maximum**
+
+### Strong Scaling (3 workers × 8 threads)
+
+| Resolution | T_seq (ms) | T_par (ms) | S(p) |
+|-----------|-----------|-----------|------|
+| 480×270   | 656       | 520       | 1.26× |
+| 960×540   | 1,746     | 897       | 1.95× |
+| 1920×1080 | 6,221     | 1,638     | 3.80× |
 
 ---
 
@@ -151,17 +218,23 @@ Achieved speedup of 3.80× is 87.8% of the theoretical maximum.
 | `common/`, `core/RayTracer.java`, `core/BVH.java` | Amna Akhtar Nawabi (462939) |
 | `core/SequentialRunner.java`, `core/CorrectnessChecker.java` | Amna Akhtar Nawabi (462939) |
 | `benchmark_*.ps1`, `analyze_results.py`, project report | Amna Akhtar Nawabi (462939) |
-| `worker/WorkerNode.java`, `worker/TileRenderer.java` | Sana Khan Khitran (464597) |
+| `worker/WorkerNode.java`, `worker/TileRenderer.java`, project report | Sana Khan Khitran (464597) |
 | `master/MasterNode.java`, `master/WorkPartitioner.java`, `master/ResultAggregator.java` | Attiqa Bano (473781) |
+
+---
+
+## Repository
+
+**GitHub:** https://github.com/aanawabi/RayTracer
 
 ---
 
 ## Team
 
-| Member | Roll No. | Role |
-|--------|----------|------|
-| Amna Akhtar Nawabi | 462939 | Ray Tracer Core, BVH, Sequential Baseline, Benchmarking & Analysis, Report |
-| Sana Khan Khitran | 464597 | Worker Node, Intra-node Multi-threading |
+| Member | Roll No. | Contributions |
+|--------|----------|--------------|
+| Amna Akhtar Nawabi | 462939 | Ray Tracer Core, BVH Optimization, Sequential Baseline, Benchmarking & Analysis, Report |
+| Sana Khan Khitran | 464597 | Worker Node, Intra-node Multi-threading, System Testing & Validation, Report |
 | Attiqa Bano | 473781 | Master Node, Work Partitioning, Result Aggregation |
 
-**Course:** CS-347 Parallel & Distributed Computing · **Instructor:** Dr. Fahad Ahmed Satti · **Due:** 15 May 2026
+**Course:** CS-347 Parallel & Distributed Computing · **Instructor:** Dr. Fahad Ahmed Satti · **Due:** 8th May 2026
